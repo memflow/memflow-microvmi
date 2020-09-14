@@ -1,0 +1,41 @@
+[package]
+name = "memflow-microvmi"
+version = "0.1.0"
+authors = ["ko1N <ko1N1337@gmail.com>"]
+edition = "2018"
+license = "MIT"
+description = "libmicrovmi connector for the memflow physical memory introspection framework"
+homepage = "https://memflow.github.io"
+repository = "https://github.com/memflow/memflow-microvmi"
+documentation = "https://docs.rs/memflow-microvmi"
+readme = "README.md"
+keywords = [ "memflow", "libmicrovmi", "introspection", "memory" ]
+categories = [ "api-bindings", "memory-management", "os" ]
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[dependencies]
+memflow = { version = "0.1", features = ["inventory"] }
+memflow-derive = { version = "0.1" }
+log = { version = "0.4", default-features = false }
+microvmi = { version = "0.1", git = "https://github.com/Wenzel/libmicrovmi" }
+
+[dev-dependencies]
+clap = "2.33"
+simple_logger = "1.0"
+
+[profile.release]
+lto = true
+
+[features]
+default = []
+inventory = []
+hyper-v = ["microvmi/hyper-v"]
+kvm = ["microvmi/kvm"]
+virtualbox = ["microvmi/virtualbox"]
+xen = ["microvmi/xen"]
+
+[[example]]
+name = "read_phys"
+path = "examples/read_phys.rs"
