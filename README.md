@@ -40,7 +40,7 @@ It will place it inside `~/.local/lib/memflow` directory. Add `~/.local/lib` dir
 
 ## License
 
-Licensed under MIT License, see [LICENSE](LICENSE).
+Licensed under GPL 3.0 License, see [LICENSE](LICENSE).
 
 ### Contribution
 
