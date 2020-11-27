@@ -1,3 +1,4 @@
+use std::env;
 use std::time::Instant;
 
 use log::{info, Level};
@@ -5,18 +6,21 @@ use log::{info, Level};
 use memflow::*;
 
 fn main() {
-    simple_logger::init_with_level(Level::Debug).unwrap();
+    simple_logger::SimpleLogger::new()
+        .with_level(Level::Debug.to_level_filter())
+        .init()
+        .unwrap();
+
+    let args: Vec<String> = env::args().collect();
+    let conn_args = if args.len() > 1 {
+        ConnectorArgs::parse(&args[1]).expect("unable to parse arguments")
+    } else {
+        ConnectorArgs::new()
+    };
 
     // TODO: parse command-line args
-    let mut conn = match memflow_microvmi::create_connector(
-        &ConnectorArgs::parse("name=win10,type=kvm").unwrap(),
-    ) {
-        Ok(br) => br,
-        Err(e) => {
-            info!("couldn't open memory read context: {:?}", e);
-            return;
-        }
-    };
+    let mut conn = memflow_microvmi::create_connector(&conn_args)
+        .expect("unable to initialize memflow_microvmi");
 
     let mut mem = vec![0; 8];
     conn.phys_read_raw_into(Address::from(0x1000).into(), &mut mem)

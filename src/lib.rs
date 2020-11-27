@@ -1,6 +1,6 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
-use log::{info, warn};
+use log::warn;
 
 use memflow::*;
 use memflow_derive::connector;
@@ -11,23 +11,24 @@ use microvmi::{
 };
 
 pub struct MicroVMI {
-    driver: Mutex<Box<dyn Introspectable>>,
-}
-
-// TODO: implement me
-impl Clone for MicroVMI {
-    fn clone(&self) -> Self {
-        panic!("unable to clone microvmi connector");
-    }
+    driver: Arc<Mutex<Box<dyn Introspectable>>>,
 }
 
 unsafe impl Send for MicroVMI {}
+
+impl Clone for MicroVMI {
+    fn clone(&self) -> Self {
+        Self {
+            driver: self.driver.clone(),
+        }
+    }
+}
 
 impl MicroVMI {
     pub fn new(domain_name: &str, init_option: Option<DriverInitParam>) -> Result<Self> {
         let driver = microvmi::init(domain_name, None, init_option);
         Ok(Self {
-            driver: Mutex::new(driver),
+            driver: Arc::new(Mutex::new(driver)),
         })
     }
 
@@ -38,7 +39,7 @@ impl MicroVMI {
     ) -> Result<Self> {
         let driver = microvmi::init(domain_name, Some(ty), init_option);
         Ok(Self {
-            driver: Mutex::new(driver),
+            driver: Arc::new(Mutex::new(driver)),
         })
     }
 }
@@ -52,16 +53,16 @@ impl PhysicalMemory for MicroVMI {
         Ok(())
     }
 
+    #[allow(clippy::cast_ref_to_mut)]
     fn phys_write_raw_list(&mut self, data: &[PhysicalWriteData]) -> Result<()> {
-        // mutability issue
-        panic!("not implemented yet")
-        /*
         let drv = self.driver.lock().unwrap();
         for write in data.iter() {
-            drv.write_physical(write.0.as_u64(), write.1).ok();
+            drv.write_physical(write.0.as_u64(), unsafe {
+                &mut *(write.1 as *const [u8] as *mut [u8])
+            })
+            .ok();
         }
         Ok(())
-        */
     }
 
     fn metadata(&self) -> PhysicalMemoryMetadata {
@@ -94,6 +95,7 @@ pub fn create_connector(args: &ConnectorArgs) -> Result<MicroVMI> {
 }
 
 /// Converts a str into a microvmi DriverType
+#[allow(clippy::match_single_binding)]
 fn driver_type_from_str(ty: &str) -> DriverType {
     match ty {
         #[cfg(feature = "hyper-v")]
