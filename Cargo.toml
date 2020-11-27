@@ -16,8 +16,7 @@ categories = [ "api-bindings", "memory-management", "os" ]
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
-memflow = { version = "0.1", features = ["inventory"] }
-memflow-derive = { version = "0.1" }
+memflow = { git = "https://github.com/memflow/memflow", branch = "next", features = ["inventory"] }
 log = { version = "0.4", default-features = false }
 microvmi = { version = "0.1", git = "https://github.com/Wenzel/libmicrovmi" }
 

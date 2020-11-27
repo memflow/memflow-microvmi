@@ -2,8 +2,8 @@ use std::sync::{Arc, Mutex};
 
 use log::warn;
 
-use memflow::*;
-use memflow_derive::connector;
+use memflow::derive::connector;
+use memflow::prelude::v1::*;
 
 use microvmi::{
     self,
@@ -75,7 +75,7 @@ impl PhysicalMemory for MicroVMI {
 }
 
 /// Creates a new MicroVMI Connector instance.
-#[connector(name = "microvmi")]
+#[connector(name = "microvmi", ty = "MicroVMI")]
 pub fn create_connector(args: &ConnectorArgs) -> Result<MicroVMI> {
     let name = args
         .get("name")
